@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  cert-creator:
+    build: .
+    container_name: cert-creator
+    restart: always
+    env_file: .env
+    volumes:
+      - ./templates:/app/templates
+      - ./fonts:/app/fonts
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./data:/app/data
+      - ./gdrive-credentials.json:/app/gdrive-credentials.json
+      - ./gdrive-token.json:/app/gdrive-token.json
+      - ./gdrive-config.json:/app/gdrive-config.json
+    networks:
+      - nginx_default
+
+networks:
+  nginx_default:
+    external: true
