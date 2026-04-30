@@ -3,7 +3,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "templates.db"
+DB_PATH = Path(__file__).parent.parent / "data" / "templates.db"
 
 POS_GRADUACOES = [
     "Medicina Funcional Integrativa",
