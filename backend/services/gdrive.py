@@ -12,7 +12,7 @@ TOKEN_PATH  = BASE_DIR / "gdrive-token.json"          # saved access/refresh tok
 CONFIG_PATH = BASE_DIR / "gdrive-config.json"
 
 SCOPES       = ["https://www.googleapis.com/auth/drive"]
-REDIRECT_URI = "http://localhost:8001/api/drive/oauth-callback"
+REDIRECT_URI = "https://certificados.luccaa.com.br/api/drive/oauth-callback"
 
 def _client_type() -> str:
     """Return 'web' or 'installed' based on uploaded credentials file."""
@@ -42,7 +42,10 @@ _pending_flow: Optional[object] = None
 
 def _read_config() -> dict:
     if CONFIG_PATH.exists():
-        return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        try:
+            return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            return {}
     return {}
 
 def _write_config(cfg: dict):
