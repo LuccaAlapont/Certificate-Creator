@@ -94,7 +94,7 @@ def oauth_callback(code: str):
     except Exception as e:
         logger.error(f"OAuth callback error: {e}", exc_info=True)
         raise HTTPException(500, f"Erro na autorização: {e}")
-    return RedirectResponse("http://localhost:8001/?drive=ok")
+    return RedirectResponse("/?drive=ok")
 
 @router.post("/drive/revoke")
 def revoke_oauth():
