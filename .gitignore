@@ -1,0 +1,38 @@
+# Ambiente virtual
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Credenciais e tokens — NUNCA commitar
+credentials/
+gdrive-credentials.json
+gdrive-token.json
+gdrive-config.json
+*.json.bak
+
+# Dados locais gerados em runtime
+outputs/
+uploads/
+templates.db
+
+# Arquivos de template e fontes (sobem manualmente no servidor)
+templates/
+fonts/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Env files
+.env
+.env.*

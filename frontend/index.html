@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Certificados</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ── Sidebar esquerda ──────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+
+  <div class="sidebar-pos-header">
+    <span class="sidebar-section-title">Pós-Graduações</span>
+    <button class="sidebar-logout-btn" onclick="authLogout()" title="Sair">↩ Sair</button>
+  </div>
+  <div class="sidebar-list" id="posList"></div>
+
+</aside>
+
+<!-- ── Main area ─────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <section class="card" id="sectionTemplate">
+    <h2 class="card-title">1. Modelo selecionado</h2>
+    <div id="noTemplateMsg" class="placeholder-msg">
+      Selecione um modelo na barra lateral.
+    </div>
+    <div id="templateEditor" class="hidden">
+      <div class="selected-badge" id="selectedBadge"></div>
+      <div class="template-pair">
+        <div class="template-pair-item">
+          <div class="canvas-wrap" id="canvasWrap">
+            <img id="templateImg" src="" alt="Modelo" />
+            <div class="pos-marker" id="posMarker"></div>
+            <div class="max-width-bar" id="maxWidthBar"></div>
+          </div>
+          <div class="pair-label frente-label">FRENTE</div>
+        </div>
+        <div class="template-pair-sep hidden" id="versoPairSep">+</div>
+        <div class="template-pair-item hidden" id="versoPairItem">
+          <img class="verso-preview-img" id="versoPairImg" src="" alt="Verso" />
+          <div class="pair-label verso-label">VERSO</div>
+        </div>
+      </div>
+      <p class="canvas-hint">Clique na frente para definir o centro do nome.</p>
+      <div class="config-grid">
+        <label>Tamanho base da fonte (pt)
+          <input type="number" id="cfgFontSize" min="10" max="300" value="200" />
+        </label>
+        <label>Largura máxima (% da imagem)
+          <input type="number" id="cfgMaxWidth" min="10" max="100" value="70" />
+        </label>
+        <label>Cor do texto
+          <input type="color" id="cfgColor" value="#ffffff" />
+        </label>
+        <label>Alinhamento
+          <select id="cfgAlignment">
+            <option value="center">Centralizado</option>
+            <option value="left">Esquerda</option>
+            <option value="right">Direita</option>
+          </select>
+        </label>
+        <label>Fonte (nome do arquivo em fonts/)
+          <input type="text" id="cfgFontName" placeholder="Ex: Montserrat-Bold.ttf" />
+        </label>
+      </div>
+      <div class="config-actions">
+        <button class="btn btn-secondary" id="btnSaveConfig">Salvar configuração</button>
+        <button class="btn btn-ghost" id="btnPreview">Pré-visualizar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="sectionNames">
+    <h2 class="card-title">2. Lista de nomes</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="text">Lista de texto</button>
+      <button class="tab" data-tab="spreadsheet">Planilha (.xlsx / .csv)</button>
+    </div>
+    <div class="tab-panel" id="tabText">
+      <textarea id="namesTextarea" class="names-textarea" placeholder="Cole os nomes aqui, um por linha..." rows="8"></textarea>
+      <p class="name-count" id="nameCount">0 nomes detectados</p>
+    </div>
+    <div class="tab-panel hidden" id="tabSpreadsheet">
+      <label class="btn btn-secondary upload-label">
+        Selecionar arquivo
+        <input type="file" id="inputSpreadsheet" accept=".xlsx,.csv" hidden />
+      </label>
+      <span id="spreadsheetFilename" class="file-name-label"></span>
+      <div class="spreadsheet-opts" id="spreadsheetOpts" style="display:none">
+        <label>Coluna (0 = primeira)
+          <input type="number" id="colIndex" min="0" value="0" style="width:64px" />
+        </label>
+        <label>
+          <input type="checkbox" id="hasHeader" checked /> Tem cabeçalho
+        </label>
+        <button class="btn btn-secondary" id="btnPeek">Pré-visualizar</button>
+      </div>
+      <div id="spreadsheetPreview" class="sheet-preview hidden">
+        <p class="preview-label">Primeiras 10 linhas:</p>
+        <ul id="peekList"></ul>
+        <p id="peekTotal" class="name-count"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="sectionGenerate">
+    <h2 class="card-title">3. Gerar certificados</h2>
+    <div class="format-selector">
+      <span class="format-label">Formato:</span>
+      <label class="format-opt"><input type="radio" name="outputFormat" value="pdf" checked /> PDF individual (ZIP)</label>
+      <label class="format-opt"><input type="radio" name="outputFormat" value="pdf_combined" /> PDF combinado</label>
+      <label class="format-opt"><input type="radio" name="outputFormat" value="png" /> PNG</label>
+      <label class="format-opt"><input type="radio" name="outputFormat" value="jpeg_cmyk" /> JPEG (CMYK)</label>
+    </div>
+    <p class="verso-hint hidden" id="versoHint"></p>
+    <div class="generate-actions">
+      <button class="btn btn-primary btn-lg" id="btnGenerate">Gerar certificados</button>
+      <button class="btn btn-secondary btn-lg" id="btnAddToQueue">+ Adicionar à fila</button>
+    </div>
+    <div id="progressArea" class="hidden">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+      <p class="progress-label" id="progressLabel">Aguardando...</p>
+    </div>
+    <div id="summaryArea" class="hidden">
+      <div class="summary-box" id="summaryBox"></div>
+      <div class="generate-actions">
+        <button class="btn btn-primary btn-lg" id="btnDownload">⬇ Baixar certificados (.zip)</button>
+        <button class="btn btn-secondary btn-lg hidden" id="btnDriveUpload">📤 Enviar para Drive</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="sectionQueue">
+    <h2 class="card-title">4. Fila de tarefas</h2>
+    <p class="placeholder-msg" id="queueEmpty">Nenhuma tarefa na fila. Use "Adicionar à fila" na seção acima.</p>
+    <ul class="queue-list" id="queueList"></ul>
+    <div class="queue-footer hidden" id="queueFooter">
+      <button class="btn btn-primary btn-lg" id="btnRunAll">▶ Executar todas</button>
+      <button class="btn btn-ghost" id="btnClearQueue">Limpar fila</button>
+    </div>
+    <div id="queueResults"></div>
+  </section>
+
+</main>
+
+<!-- ── Sidebar direita: conversor de imagens ─────────────────────────────── -->
+<aside class="sidebar-right" id="sidebarRight">
+  <div class="sidebar-header">
+    <span class="sidebar-title">Imagem → PDF</span>
+  </div>
+  <div class="conv-body">
+    <div class="drop-zone" id="convDropZone">
+      <span class="drop-icon">🖼</span>
+      <span class="drop-text">Arraste imagens aqui<br/>ou clique para selecionar</span>
+      <input type="file" id="convFileInput" accept=".png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif" multiple hidden />
+    </div>
+    <ul class="conv-file-list" id="convFileList"></ul>
+    <div class="conv-format">
+      <label class="format-opt"><input type="radio" name="convFormat" value="combined" checked /> PDF combinado</label>
+      <label class="format-opt"><input type="radio" name="convFormat" value="individual" /> PDFs individuais (ZIP)</label>
+    </div>
+    <button class="btn btn-primary" id="btnConvert" style="width:100%" disabled>Converter</button>
+    <p class="conv-status hidden" id="convStatus"></p>
+  </div>
+
+  <!-- ── Google Drive config ── -->
+  <div class="drive-panel">
+    <button class="drive-panel-toggle" id="drivePanelToggle">
+      <span class="drive-icon">▶</span>
+      <span>Google Drive</span>
+      <span class="drive-status-dot" id="driveStatusDot"></span>
+    </button>
+    <div class="drive-panel-body hidden" id="drivePanelBody">
+      <p class="drive-status-msg" id="driveStatusMsg">Verificando...</p>
+
+      <label class="drive-label">1. Credencial OAuth2 (JSON)
+        <label class="btn btn-secondary drive-upload-btn">
+          Selecionar arquivo
+          <input type="file" id="driveCredInput" accept=".json" hidden />
+        </label>
+        <span class="drive-file-name" id="driveCredName"></span>
+        <small>No Google Cloud Console: OAuth 2.0 → Aplicativo da Web → baixar JSON</small>
+      </label>
+
+      <a class="btn btn-primary" id="btnDriveAuth" href="/api/drive/oauth/start" target="_blank" style="width:100%;text-align:center;text-decoration:none">🔑 Autorizar com Google</a>
+      <button class="btn btn-ghost btn-sm" id="btnDriveRevoke" style="width:100%">Desconectar conta</button>
+
+      <label class="drive-label">2. ID da pasta CERTIFICADOS
+        <input type="text" id="driveFolderId" placeholder="Cole o ID aqui..." class="drive-input" />
+        <small>URL do Drive: /folders/<strong>ID_AQUI</strong></small>
+      </label>
+
+      <label class="drive-label">3. Ano dos certificados
+        <input type="number" id="driveYear" class="drive-input" min="2020" max="2099" placeholder="2025" />
+        <small>Cria a subpasta do ano automaticamente.</small>
+      </label>
+
+      <button class="btn btn-secondary" id="btnDriveSave" style="width:100%;margin-top:4px">Salvar pasta e ano</button>
+    </div>
+  </div>
+</aside>
+
+<!-- Preview modal -->
+<div class="modal-overlay hidden" id="previewModal">
+  <div class="modal">
+    <button class="modal-close" id="btnClosePreview">✕</button>
+    <img id="previewModalImg" src="" alt="Pré-visualização" />
+  </div>
+</div>
+
+<!-- Hidden file input for slot uploads -->
+<input type="file" id="globalSlotInput" accept=".png,.jpg,.jpeg" hidden />
+
+<!-- Toast -->
+<div class="toast hidden" id="toast"></div>
+
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/convert.js"></script>
+<script src="/static/js/drive.js"></script>
+</body>
+</html>
